@@ -68,8 +68,7 @@ export default function Directory() {
 
   const API_URL = 'http://localhost:8080/api';
 
-  const selectedCityObj = cities.find(c => c.id === parseInt(cityParam));
-  const selectedCityName = selectedCityObj ? selectedCityObj.name : '';
+
 
   useEffect(() => {
     // Fetch categories & cities for filters
