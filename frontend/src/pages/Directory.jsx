@@ -3,6 +3,25 @@ import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { Search, MapPin, Tag, Star, Award, Mail, Phone, ChevronRight, X, AlertCircle, RefreshCw, Building2 } from 'lucide-react';
 import MapComponent from '../components/MapComponent';
 
+// Lookup dictionary of areas for major Indian cities
+const CITY_AREAS = {
+  "Chennai": ["Anna Nagar", "Guindy", "Tambaram", "Adyar", "T. Nagar", "Velachery"],
+  "Delhi": ["Connaught Place", "Dwarka", "Saket", "Karol Bagh", "Vasant Kunj", "Okhla"],
+  "Mumbai": ["Andheri", "Bandra", "Colaba", "Borivali", "Dadar", "Worli"],
+  "Bengaluru": ["Koramangala", "Indiranagar", "Jayanagar", "Whitefield", "Electronic City", "HSR Layout"],
+  "Coimbatore": ["Gandhipuram", "RS Puram", "Peelamedu", "Saibaba Colony", "Saravanampatti"],
+  "Pune": ["Kothrud", "Koregaon Park", "Hinjawadi", "Viman Nagar", "Baner"],
+  "Hyderabad": ["Gachibowli", "Madhapur", "Jubilee Hills", "Banjara Hills", "Secunderabad"],
+  "Kolkata": ["Salt Lake", "New Town", "Park Street", "Howrah", "Tollygunge"],
+  "Jaipur": ["Malviya Nagar", "Vaishali Nagar", "Mansarovar", "C-Scheme"],
+  "Surat": ["Adajan", "Varachha", "Piplod", "Vesu"],
+  "Ahmedabad": ["Satellite", "C G Road", "Vastrapur", "Bodakdev"],
+  "Noida": ["Sector 62", "Sector 18", "Sector 15", "Sector 63"],
+  "Gurugram": ["DLF Phase 3", "Sector 29", "Sohna Road", "Golf Course Road"],
+  "Vadodara": ["Alkapuri", "Gotri", "Manjalpur", "Sayajigunj"],
+  "Ludhiana": ["Model Town", "Civil Lines", "Sarabha Nagar"]
+};
+
 export default function Directory() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -11,11 +30,31 @@ export default function Directory() {
   const termParam = searchParams.get('term') || '';
   const cityParam = searchParams.get('cityId') || '';
   const categoryParam = searchParams.get('categoryId') || '';
+  const stateParam = searchParams.get('state') || '';
+  const areaParam = searchParams.get('area') || '';
 
   const [listings, setListings] = useState([]);
   const [categories, setCategories] = useState([]);
   const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const uniqueStates = [...new Set(cities.map(c => c.state))].sort();
+  const filteredCities = stateParam ? cities.filter(c => c.state === stateParam) : cities;
+
+  const selectedCityObj = cities.find(c => c.id === parseInt(cityParam));
+  const selectedCityName = selectedCityObj ? selectedCityObj.name : '';
+  const areasForSelectedCity = selectedCityName ? (CITY_AREAS[selectedCityName] || []) : [];
+
+  const filteredListings = listings.filter(item => {
+    if (stateParam && item.city?.state !== stateParam) {
+      return false;
+    }
+    if (areaParam) {
+      const address = (item.address || '').toLowerCase();
+      return address.includes(areaParam.toLowerCase());
+    }
+    return true;
+  });
 
   // Inquiry modal state
   const [activeInquiryListing, setActiveInquiryListing] = useState(null);
@@ -64,6 +103,15 @@ export default function Directory() {
     } else {
       newParams.delete(key);
     }
+
+    // Cascading parameter clears
+    if (key === 'state') {
+      newParams.delete('cityId');
+      newParams.delete('area');
+    } else if (key === 'cityId') {
+      newParams.delete('area');
+    }
+
     setSearchParams(newParams);
   };
 
@@ -125,7 +173,7 @@ export default function Directory() {
       <div style={{ marginBottom: '1.5rem' }}>
         <h2 style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>B2B Search Results</h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-          Found {listings.length} registered suppliers matching your criteria
+          Found {filteredListings.length} registered suppliers matching your criteria
         </p>
       </div>
 
@@ -158,6 +206,21 @@ export default function Directory() {
             </div>
           </div>
 
+          {/* State select dropdown */}
+          <div className="filter-group">
+            <label className="form-label">State</label>
+            <select
+              className="filter-select"
+              value={stateParam}
+              onChange={(e) => handleFilterChange('state', e.target.value)}
+            >
+              <option value="">All States</option>
+              {uniqueStates.map((st) => (
+                <option key={st} value={st}>{st}</option>
+              ))}
+            </select>
+          </div>
+
           {/* City select dropdown */}
           <div className="filter-group">
             <label className="form-label">City / Location</label>
@@ -166,12 +229,29 @@ export default function Directory() {
               value={cityParam}
               onChange={(e) => handleFilterChange('cityId', e.target.value)}
             >
-              <option value="">All Locations</option>
-              {cities.map((city) => (
-                <option key={city.id} value={city.id}>{city.name}, {city.state}</option>
+              <option value="">All Cities</option>
+              {filteredCities.map((city) => (
+                <option key={city.id} value={city.id}>{city.name}</option>
               ))}
             </select>
           </div>
+
+          {/* Area select dropdown */}
+          {areasForSelectedCity.length > 0 && (
+            <div className="filter-group">
+              <label className="form-label">Area / Locality</label>
+              <select
+                className="filter-select"
+                value={areaParam}
+                onChange={(e) => handleFilterChange('area', e.target.value)}
+              >
+                <option value="">All Areas</option>
+                {areasForSelectedCity.map((area) => (
+                  <option key={area} value={area}>{area}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Category select dropdown */}
           <div className="filter-group">
@@ -196,9 +276,9 @@ export default function Directory() {
               <RefreshCw className="animate-spin" size={36} color="var(--primary-light)" />
               <p style={{ color: 'var(--text-muted)' }}>Searching directory...</p>
             </div>
-          ) : listings.length > 0 ? (
+          ) : filteredListings.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              {listings.map((item) => (
+              {filteredListings.map((item) => (
                 <div key={item.id} className="listing-card" style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
                   {/* Company Logo mock badge */}
                   <div style={{ width: '100px', height: '100px', margin: '1.5rem', background: '#e2e8f0', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', fontWeight: 800, fontSize: '1.75rem', alignSelf: 'flex-start' }}>
@@ -279,7 +359,7 @@ export default function Directory() {
 
         {/* Sticky Map Side Panel */}
         <aside style={{ position: 'sticky', top: '100px', height: 'calc(100vh - 140px)', minHeight: '400px' }}>
-          <MapComponent listings={listings} selectedCityName={selectedCityName} />
+          <MapComponent listings={filteredListings} selectedCityName={selectedCityName} />
         </aside>
       </div>
 
