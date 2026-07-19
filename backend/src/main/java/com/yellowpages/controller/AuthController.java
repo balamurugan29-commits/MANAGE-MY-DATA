@@ -75,10 +75,12 @@ public class AuthController {
             user.setRole("ROLE_BUSINESS");
         } else {
             // Standardise role inputs
-            if (strRole.equalsIgnoreCase("admin")) {
+            if (strRole.equalsIgnoreCase("admin") || strRole.equalsIgnoreCase("ROLE_ADMIN")) {
                 user.setRole("ROLE_ADMIN");
-            } else if (strRole.equalsIgnoreCase("buyer")) {
+            } else if (strRole.equalsIgnoreCase("buyer") || strRole.equalsIgnoreCase("ROLE_BUYER")) {
                 user.setRole("ROLE_BUYER");
+            } else if (strRole.equalsIgnoreCase("employee") || strRole.equalsIgnoreCase("ROLE_EMPLOYEE")) {
+                user.setRole("ROLE_EMPLOYEE");
             } else {
                 user.setRole("ROLE_BUSINESS");
             }

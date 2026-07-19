@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { Search, MapPin, Tag, Star, Award, Mail, Phone, ChevronRight, X, AlertCircle, RefreshCw, Building2 } from 'lucide-react';
+import { Search, MapPin, Tag, Star, Award, Mail, Phone, ChevronRight, X, AlertCircle, RefreshCw, Building2, CheckCircle } from 'lucide-react';
 import MapComponent from '../components/MapComponent';
 
 // Lookup dictionary of areas for major Indian cities
@@ -50,8 +50,9 @@ export default function Directory() {
       return false;
     }
     if (areaParam) {
-      const address = (item.address || '').toLowerCase();
-      return address.includes(areaParam.toLowerCase());
+      const areaMatch = (item.area || '').toLowerCase().includes(areaParam.toLowerCase());
+      const addressMatch = (item.address || '').toLowerCase().includes(areaParam.toLowerCase());
+      return areaMatch || addressMatch;
     }
     return true;
   });
@@ -155,7 +156,7 @@ export default function Directory() {
         throw new Error('Could not submit inquiry. Please try again.');
       }
 
-      setInquirySuccess('Your B2B inquiry/lead was sent successfully! The seller will contact you shortly.');
+      setInquirySuccess("Your inquiry has been successfully sent. The listing owner will contact you shortly.");
       setTimeout(() => {
         handleCloseInquiry();
       }, 2500);
@@ -280,8 +281,10 @@ export default function Directory() {
               {filteredListings.map((item) => (
                 <div key={item.id} className="listing-card" style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
                   {/* Company Logo mock badge */}
-                  <div style={{ width: '100px', height: '100px', margin: '1.5rem', background: '#e2e8f0', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', fontWeight: 800, fontSize: '1.75rem', alignSelf: 'flex-start' }}>
-                    {item.name.charAt(0)}
+                  <div style={{ width: '100px', height: '100px', margin: '1.5rem', background: '#e2e8f0', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', fontWeight: 800, fontSize: '1.75rem', alignSelf: 'flex-start', overflow: 'hidden' }}>
+                    {item.logoUrl ? (
+                      <img src={item.logoUrl.startsWith('/uploads') ? `http://localhost:8080${item.logoUrl}` : item.logoUrl} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : item.name.charAt(0)}
                   </div>
 
                   {/* Body details */}
@@ -314,7 +317,7 @@ export default function Directory() {
 
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        <MapPin size={14} /> {item.city?.name}, {item.city?.state}
+                        <MapPin size={14} /> {item.area ? `${item.area}, ` : ''}{item.city?.name}, {item.city?.state}
                       </span>
                       {item.contactPhone && (
                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
@@ -358,7 +361,11 @@ export default function Directory() {
 
         {/* Sticky Map Side Panel */}
         <aside style={{ position: 'sticky', top: '100px', height: 'calc(100vh - 140px)', minHeight: '400px' }}>
-          <MapComponent listings={filteredListings} selectedCityName={selectedCityName} />
+          <MapComponent 
+            listings={filteredListings} 
+            selectedCityName={selectedCityName} 
+            selectedAreaName={areaParam} 
+          />
         </aside>
       </div>
 
@@ -382,7 +389,7 @@ export default function Directory() {
 
               {inquirySuccess && (
                 <div style={{ background: '#f0fdf4', border: '1px solid #86efac', padding: '0.75rem', borderRadius: '8px', color: '#166534', fontSize: '0.85rem', marginBottom: '1rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                  <CheckCircle2 size={16} /> <span>{inquirySuccess}</span>
+                  <CheckCircle size={16} /> <span>{inquirySuccess}</span>
                 </div>
               )}
 

@@ -5,9 +5,9 @@ IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[us
 BEGIN
     CREATE TABLE [dbo].[users] (
         [id] INT IDENTITY(1,1) PRIMARY KEY,
-        [username] VARCHAR(50) UNIQUE NOT NULL,
+        [username] VARCHAR(20) UNIQUE NOT NULL,
         [password] VARCHAR(255) NOT NULL,
-        [email] VARCHAR(100) UNIQUE NOT NULL,
+        [email] VARCHAR(50) UNIQUE NOT NULL,
         [role] VARCHAR(20) DEFAULT 'ROLE_BUSINESS' NOT NULL, -- ROLE_BUSINESS, ROLE_ADMIN, ROLE_BUYER
         [created_at] DATETIME DEFAULT GETDATE() NOT NULL
     );
@@ -18,9 +18,9 @@ IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[ca
 BEGIN
     CREATE TABLE [dbo].[categories] (
         [id] INT IDENTITY(1,1) PRIMARY KEY,
-        [name] VARCHAR(100) NOT NULL,
-        [icon_class] VARCHAR(50) NULL,
-        [slug] VARCHAR(100) UNIQUE NOT NULL,
+        [name] VARCHAR(50) NOT NULL,
+        [icon_class] VARCHAR(20) NULL,
+        [slug] VARCHAR(50) UNIQUE NOT NULL,
         [description] NVARCHAR(MAX) NULL
     );
 END
@@ -30,8 +30,8 @@ IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[ci
 BEGIN
     CREATE TABLE [dbo].[cities] (
         [id] INT IDENTITY(1,1) PRIMARY KEY,
-        [name] VARCHAR(100) NOT NULL,
-        [state] VARCHAR(100) NOT NULL
+        [name] VARCHAR(20) NOT NULL,
+        [state] VARCHAR(20) NOT NULL
     );
 END
 
@@ -41,15 +41,21 @@ BEGIN
     CREATE TABLE [dbo].[businesses] (
         [id] INT IDENTITY(1,1) PRIMARY KEY,
         [user_id] INT NULL,
-        [name] VARCHAR(150) NOT NULL,
+        [name] VARCHAR(25) NOT NULL,
         [description] NVARCHAR(MAX) NULL,
         [category_id] INT NULL,
         [city_id] INT NULL,
-        [address] VARCHAR(255) NULL,
-        [contact_phone] VARCHAR(20) NULL,
-        [contact_email] VARCHAR(100) NULL,
-        [website] VARCHAR(150) NULL,
-        [logo_url] VARCHAR(255) NULL,
+        [address] VARCHAR(50) NULL,
+        [contact_phone] VARCHAR(12) NULL,
+        [contact_phone2] VARCHAR(12) NULL,
+        [contact_phone3] VARCHAR(12) NULL,
+        [contact_email] VARCHAR(25) NULL,
+        [contact_email2] VARCHAR(25) NULL,
+        [contact_email3] VARCHAR(25) NULL,
+        [website] VARCHAR(25) NULL,
+        [logo_url] VARCHAR(50) NULL,
+        [gst_number] VARCHAR(15) NULL,
+        [area] VARCHAR(20) NULL,
         [is_verified] BIT DEFAULT 0 NOT NULL,
         [is_approved] BIT DEFAULT 0 NOT NULL, -- Require admin approval
         [rating] DECIMAL(2,1) DEFAULT 0.0 NOT NULL,
@@ -66,10 +72,10 @@ BEGIN
     CREATE TABLE [dbo].[products] (
         [id] INT IDENTITY(1,1) PRIMARY KEY,
         [business_id] INT NOT NULL,
-        [name] VARCHAR(150) NOT NULL,
+        [name] VARCHAR(20) NOT NULL,
         [description] NVARCHAR(MAX) NULL,
         [price] DECIMAL(10,2) NULL,
-        [image_url] VARCHAR(255) NULL,
+        [image_url] VARCHAR(50) NULL,
         [created_at] DATETIME DEFAULT GETDATE() NOT NULL,
         CONSTRAINT FK_Product_Business FOREIGN KEY (business_id) REFERENCES businesses(id) ON DELETE CASCADE
     );
@@ -81,9 +87,9 @@ BEGIN
     CREATE TABLE [dbo].[inquiries] (
         [id] INT IDENTITY(1,1) PRIMARY KEY,
         [business_id] INT NOT NULL,
-        [sender_name] VARCHAR(100) NOT NULL,
-        [sender_email] VARCHAR(100) NOT NULL,
-        [sender_phone] VARCHAR(20) NULL,
+        [sender_name] VARCHAR(20) NOT NULL,
+        [sender_email] VARCHAR(50) NOT NULL,
+        [sender_phone] VARCHAR(12) NULL,
         [message] NVARCHAR(MAX) NOT NULL,
         [status] VARCHAR(20) DEFAULT 'PENDING' NOT NULL, -- PENDING, RESPONDED
         [created_at] DATETIME DEFAULT GETDATE() NOT NULL,
@@ -97,7 +103,7 @@ BEGIN
     CREATE TABLE [dbo].[reviews] (
         [id] INT IDENTITY(1,1) PRIMARY KEY,
         [business_id] INT NOT NULL,
-        [user_name] VARCHAR(100) NOT NULL,
+        [user_name] VARCHAR(20) NOT NULL,
         [rating] INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
         [comment] NVARCHAR(MAX) NULL,
         [is_approved] BIT DEFAULT 1 NOT NULL, -- Moderate reviews if needed

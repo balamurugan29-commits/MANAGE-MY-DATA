@@ -30,7 +30,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return org.springframework.security.crypto.password.NoOpPasswordEncoder.getInstance();
     }
 
     @Bean
@@ -61,8 +61,10 @@ public class SecurityConfig {
                 .requestMatchers("/api/listings/**").authenticated()
                 .requestMatchers("/api/inquiries/**").authenticated()
                 // Admin specific dashboard endpoints
-                .requestMatchers("/api/admin/users/**").hasAuthority("ROLE_SUPER_ADMIN")
+                .requestMatchers("/api/admin/users/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPER_ADMIN")
                 .requestMatchers("/api/admin/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPER_ADMIN")
+                // Permitted static uploads
+                .requestMatchers("/uploads/**").permitAll()
                 .anyRequest().authenticated()
             );
 

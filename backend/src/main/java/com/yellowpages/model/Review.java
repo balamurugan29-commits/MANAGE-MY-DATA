@@ -20,7 +20,7 @@ public class Review {
     @JoinColumn(name = "business_id", nullable = false)
     private Business business;
 
-    @Column(name = "user_name", nullable = false, length = 100)
+    @Column(name = "user_name", nullable = false, length = 20)
     private String userName;
 
     @Column(nullable = false)

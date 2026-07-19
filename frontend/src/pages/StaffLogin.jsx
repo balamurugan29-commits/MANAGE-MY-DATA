@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Lock, User, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Lock, User, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
-export default function Login({ onLoginSuccess }) {
+export default function StaffLogin({ onLoginSuccess }) {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -31,13 +31,12 @@ export default function Login({ onLoginSuccess }) {
 
       const data = await response.json();
 
-      // Check role restriction: standard members/business accounts only
-      if (data.role === 'ROLE_SUPER_ADMIN' || data.role === 'ROLE_ADMIN' || data.role === 'ROLE_EMPLOYEE') {
-        throw new Error("Access restricted. Internal staff (Super Boss, Admin, Employee) must log in using the Staff Portal.");
+      // Check role restriction: must be ROLE_SUPER_ADMIN, ROLE_ADMIN, or ROLE_EMPLOYEE
+      if (data.role !== 'ROLE_SUPER_ADMIN' && data.role !== 'ROLE_ADMIN' && data.role !== 'ROLE_EMPLOYEE') {
+        throw new Error("Access restricted. This portal is reserved for Super Boss, Admin, and Employee staff. Please login using the Member portal.");
       }
 
       onLoginSuccess(data);
-
       navigate('/');
     } catch (err) {
       setError(err.message || 'Login failed. Please check database connection.');
@@ -47,9 +46,12 @@ export default function Login({ onLoginSuccess }) {
   };
 
   return (
-    <div className="container">
-      <div className="auth-container">
-        <h2 className="auth-title">Member Log In</h2>
+    <div className="container" style={{ padding: '3rem 1rem' }}>
+      <div className="auth-container" style={{ maxWidth: '420px', margin: '0 auto', background: '#ffffff', padding: '2.5rem', borderRadius: '16px', boxShadow: 'var(--shadow-md)', border: '1px solid var(--border-color)' }}>
+        <h2 className="auth-title" style={{ textAlign: 'center', fontSize: '1.75rem', fontWeight: 800, color: 'var(--primary)', marginBottom: '0.5rem' }}>Staff Log In Portal</h2>
+        <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '2rem', lineHeight: '1.4' }}>
+          Authorized access for Super Boss, Admins, and Employees only.
+        </p>
 
         {error && (
           <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', padding: '0.75rem', borderRadius: '8px', color: '#b91c1c', display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', fontSize: '0.9rem', alignItems: 'center' }}>
@@ -59,8 +61,8 @@ export default function Login({ onLoginSuccess }) {
         )}
 
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label" htmlFor="username">Username</label>
+          <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+            <label className="form-label" htmlFor="username" style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-main)' }}>Username</label>
             <div style={{ position: 'relative' }}>
               <User size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
               <input
@@ -68,7 +70,7 @@ export default function Login({ onLoginSuccess }) {
                 type="text"
                 className="form-control"
                 style={{ paddingLeft: '2.25rem' }}
-                placeholder="Enter username"
+                placeholder="Enter staff username"
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -77,7 +79,7 @@ export default function Login({ onLoginSuccess }) {
           </div>
 
           <div className="form-group" style={{ marginBottom: '2rem' }}>
-            <label className="form-label" htmlFor="password">Password</label>
+            <label className="form-label" htmlFor="password" style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-main)' }}>Password</label>
             <div style={{ position: 'relative' }}>
               <Lock size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
               <input
@@ -85,7 +87,7 @@ export default function Login({ onLoginSuccess }) {
                 type={showPassword ? 'text' : 'password'}
                 className="form-control"
                 style={{ paddingLeft: '2.25rem', paddingRight: '2.5rem' }}
-                placeholder="Enter password"
+                placeholder="Enter staff password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -112,17 +114,10 @@ export default function Login({ onLoginSuccess }) {
             </div>
           </div>
 
-          <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? 'Logging in...' : 'Log In'}
+          <button type="submit" className="btn-primary" style={{ width: '100%', background: 'var(--primary)', color: '#ffffff' }} disabled={loading}>
+            {loading ? 'Logging in...' : 'Staff Log In'}
           </button>
         </form>
-
-        <p style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-          Don't have a business account? <Link to="/register" style={{ color: 'var(--primary-light)', fontWeight: 600 }}>Sign Up</Link>
-        </p>
-        <p style={{ marginTop: '0.75rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-          Are you a staff member? <Link to="/staff/login" style={{ color: 'var(--primary-light)', fontWeight: 600 }}>Staff Portal Login</Link>
-        </p>
       </div>
     </div>
   );

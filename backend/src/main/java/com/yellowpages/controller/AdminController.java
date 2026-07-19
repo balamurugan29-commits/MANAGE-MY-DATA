@@ -1,7 +1,6 @@
 package com.yellowpages.controller;
 
-import com.yellowpages.model.Business;
-import com.yellowpages.model.User;
+import com.yellowpages.model.*;
 import com.yellowpages.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -40,6 +39,12 @@ public class AdminController {
     @GetMapping("/pending")
     public ResponseEntity<List<Business>> getPendingListings() {
         return ResponseEntity.ok(businessRepository.findByIsApprovedFalse());
+    }
+
+    // Admin view: get all directory listings (both approved and pending)
+    @GetMapping("/listings")
+    public ResponseEntity<List<Business>> getAllListings() {
+        return ResponseEntity.ok(businessRepository.findAll());
     }
 
     // Admin action: approve a listing
@@ -84,6 +89,77 @@ public class AdminController {
         stats.put("totalReviews", reviewRepository.count());
 
         return ResponseEntity.ok(stats);
+    }
+
+    // Admin view: get all registered users
+    @GetMapping("/users")
+    public ResponseEntity<List<User>> getAllUsers() {
+        return ResponseEntity.ok(userRepository.findAll());
+    }
+
+    // Admin action: update any registered user
+    @PutMapping("/users/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable Integer id, @RequestBody User userReq) {
+        Optional<User> userOpt = userRepository.findById(id);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
+        }
+
+        User user = userOpt.get();
+
+        // Update username if provided and changed
+        if (userReq.getUsername() != null && !userReq.getUsername().isEmpty() && !userReq.getUsername().equals(user.getUsername())) {
+            if (userRepository.existsByUsername(userReq.getUsername())) {
+                return ResponseEntity.badRequest().body("Error: Username is already taken!");
+            }
+            user.setUsername(userReq.getUsername());
+        }
+
+        // Update email if provided and changed
+        if (userReq.getEmail() != null && !userReq.getEmail().isEmpty() && !userReq.getEmail().equals(user.getEmail())) {
+            if (userRepository.existsByEmail(userReq.getEmail())) {
+                return ResponseEntity.badRequest().body("Error: Email is already in use!");
+            }
+            user.setEmail(userReq.getEmail());
+        }
+
+        // Update password if provided and changed
+        if (userReq.getPassword() != null && !userReq.getPassword().isEmpty() && !userReq.getPassword().equals(user.getPassword())) {
+            user.setPassword(passwordEncoder.encode(userReq.getPassword()));
+        }
+
+        // Update role if provided
+        if (userReq.getRole() != null && !userReq.getRole().isEmpty()) {
+            user.setRole(userReq.getRole());
+        }
+
+        userRepository.save(user);
+        return ResponseEntity.ok(user);
+    }
+
+    // Admin action: delete any user
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Integer id) {
+        Optional<User> userOpt = userRepository.findById(id);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
+        }
+
+        User userToDelete = userOpt.get();
+        String currentUsername = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+
+        if (userToDelete.getUsername().equals(currentUsername)) {
+            return ResponseEntity.badRequest().body("Error: You cannot delete your own account!");
+        }
+
+        userRepository.delete(userToDelete);
+        return ResponseEntity.ok("User deleted successfully.");
+    }
+
+    // Admin view: get all platform inquiries
+    @GetMapping("/inquiries")
+    public ResponseEntity<List<Inquiry>> getAllInquiries() {
+        return ResponseEntity.ok(inquiryRepository.findAll());
     }
 
     // Super Admin: List all admin accounts

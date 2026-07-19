@@ -3,11 +3,11 @@ import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 
 // Layout & Components
 import Navbar from './components/Navbar';
-import Footer from './components/Footer';
 
 // Pages
 import Home from './pages/Home';
 import Login from './pages/Login';
+import StaffLogin from './pages/StaffLogin';
 import Register from './pages/Register';
 import Directory from './pages/Directory';
 import Details from './pages/Details';
@@ -48,6 +48,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+            <Route path="/staff/login" element={<StaffLogin onLoginSuccess={handleLoginSuccess} />} />
             <Route path="/register" element={<Register />} />
             <Route path="/search" element={<Directory />} />
             <Route path="/listings/:id" element={<Details />} />
@@ -55,8 +56,6 @@ export default function App() {
             <Route path="/admin" element={<Admin user={user} />} />
           </Routes>
         </main>
-
-        <Footer />
       </div>
     </Router>
   );

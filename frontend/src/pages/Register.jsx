@@ -20,6 +20,18 @@ export default function Register() {
     setSuccess('');
     setLoading(true);
 
+    if (username.trim().length < 3 || username.trim().length > 20) {
+      setError('Username must be between 3 and 20 characters.');
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 3 || password.length > 40) {
+      setError('Password must be between 3 and 40 characters.');
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
@@ -129,6 +141,7 @@ export default function Register() {
               >
                 <option value="ROLE_BUSINESS">Business listing owner (Sell products/services)</option>
                 <option value="ROLE_BUYER">Individual Buyer (Submit reviews & inquiries)</option>
+                <option value="ROLE_EMPLOYEE">Data Entry Employee (Manage listings database)</option>
               </select>
             </div>
           </div>

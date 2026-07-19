@@ -115,17 +115,19 @@ public class BusinessController {
     @GetMapping("/listings")
     public ResponseEntity<List<Business>> getMyListings() {
         User user = getAuthenticatedUser();
-        List<Business> myList = businessRepository.findByUser(user);
+        List<Business> myList;
+        if (user.getRole().equals("ROLE_ADMIN") || user.getRole().equals("ROLE_SUPER_ADMIN") || user.getRole().equals("ROLE_EMPLOYEE")) {
+            myList = businessRepository.findAll();
+        } else {
+            myList = businessRepository.findByUser(user);
+        }
         return ResponseEntity.ok(myList);
     }
 
-    // PRIVATE: Create a business listing (Restricted to ADMIN / SUPER_ADMIN)
+    // PRIVATE: Create a business listing (Open to all authenticated users)
     @PostMapping("/listings")
     public ResponseEntity<?> createListing(@Valid @RequestBody BusinessRequest request) {
         User user = getAuthenticatedUser();
-        if (!user.getRole().equals("ROLE_ADMIN") && !user.getRole().equals("ROLE_SUPER_ADMIN")) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Error: Only administrators can perform listing data entry.");
-        }
         
         Optional<Category> categoryOpt = categoryRepository.findById(request.getCategoryId());
         Optional<City> cityOpt = cityRepository.findById(request.getCityId());
@@ -135,19 +137,40 @@ public class BusinessController {
         }
 
         Business business = new Business();
-        business.setUser(user);
+        
+        // If creator is admin or employee, support custom owner assignment
+        User owner = user;
+        if ((user.getRole().equals("ROLE_ADMIN") || user.getRole().equals("ROLE_SUPER_ADMIN") || user.getRole().equals("ROLE_EMPLOYEE")) 
+                && request.getUserId() != null) {
+            Optional<User> ownerOpt = userRepository.findById(request.getUserId());
+            if (ownerOpt.isPresent()) {
+                owner = ownerOpt.get();
+            }
+        }
+        business.setUser(owner);
+        
         business.setName(request.getName());
         business.setDescription(request.getDescription());
         business.setCategory(categoryOpt.get());
         business.setCity(cityOpt.get());
         business.setAddress(request.getAddress());
         business.setContactPhone(request.getContactPhone());
+        business.setContactPhone2(request.getContactPhone2());
+        business.setContactPhone3(request.getContactPhone3());
         business.setContactEmail(request.getContactEmail());
+        business.setContactEmail2(request.getContactEmail2());
+        business.setContactEmail3(request.getContactEmail3());
         business.setWebsite(request.getWebsite());
         business.setLogoUrl(request.getLogoUrl());
+        business.setGstNumber(request.getGstNumber());
+        business.setArea(request.getArea());
         
-        // Auto-approve since creator is Admin/SuperAdmin
-        business.setIsApproved(true);
+        // Auto-approve since creator is Admin/SuperAdmin/Employee
+        if (user.getRole().equals("ROLE_ADMIN") || user.getRole().equals("ROLE_SUPER_ADMIN") || user.getRole().equals("ROLE_EMPLOYEE")) {
+            business.setIsApproved(true);
+        } else {
+            business.setIsApproved(false);
+        }
         business.setIsVerified(false);
         business.setRating(0.0);
 
@@ -167,9 +190,18 @@ public class BusinessController {
 
         Business business = businessOpt.get();
 
-        // Security check: Only Admin/SuperAdmin can edit
-        if (!user.getRole().equals("ROLE_ADMIN") && !user.getRole().equals("ROLE_SUPER_ADMIN")) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Error: Only administrators can update business listing details.");
+        // Security check: Only Admin/SuperAdmin/Employee or the listing owner can update details
+        if (!user.getRole().equals("ROLE_ADMIN") && !user.getRole().equals("ROLE_SUPER_ADMIN") && !user.getRole().equals("ROLE_EMPLOYEE") && (business.getUser() == null || !business.getUser().getId().equals(user.getId()))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Error: You are not authorized to update this listing.");
+        }
+
+        // If creator is admin or employee, support updating owner association
+        if ((user.getRole().equals("ROLE_ADMIN") || user.getRole().equals("ROLE_SUPER_ADMIN") || user.getRole().equals("ROLE_EMPLOYEE")) 
+                && request.getUserId() != null) {
+            Optional<User> ownerOpt = userRepository.findById(request.getUserId());
+            if (ownerOpt.isPresent()) {
+                business.setUser(ownerOpt.get());
+            }
         }
 
         Optional<Category> categoryOpt = categoryRepository.findById(request.getCategoryId());
@@ -185,9 +217,15 @@ public class BusinessController {
         business.setCity(cityOpt.get());
         business.setAddress(request.getAddress());
         business.setContactPhone(request.getContactPhone());
+        business.setContactPhone2(request.getContactPhone2());
+        business.setContactPhone3(request.getContactPhone3());
         business.setContactEmail(request.getContactEmail());
+        business.setContactEmail2(request.getContactEmail2());
+        business.setContactEmail3(request.getContactEmail3());
         business.setWebsite(request.getWebsite());
         business.setLogoUrl(request.getLogoUrl());
+        business.setGstNumber(request.getGstNumber());
+        business.setArea(request.getArea());
 
         businessRepository.save(business);
         return ResponseEntity.ok(business);
@@ -205,9 +243,9 @@ public class BusinessController {
 
         Business business = businessOpt.get();
 
-        // Security check: Only Admin/SuperAdmin can delete
-        if (!user.getRole().equals("ROLE_ADMIN") && !user.getRole().equals("ROLE_SUPER_ADMIN")) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Error: Only administrators can delete listings.");
+        // Security check: Only Admin/SuperAdmin/Employee can delete
+        if (!user.getRole().equals("ROLE_ADMIN") && !user.getRole().equals("ROLE_SUPER_ADMIN") && !user.getRole().equals("ROLE_EMPLOYEE")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Error: Only administrators or employees can delete listings.");
         }
 
         businessRepository.delete(business);
@@ -226,9 +264,12 @@ public class BusinessController {
 
         Business business = businessOpt.get();
 
-        // Security check: Only Admin/SuperAdmin can add products
-        if (!user.getRole().equals("ROLE_ADMIN") && !user.getRole().equals("ROLE_SUPER_ADMIN")) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Error: Only administrators can add products.");
+        // Security check: Only Admin/SuperAdmin/Employee or the listing owner can add products
+        if (!user.getRole().equals("ROLE_ADMIN") && 
+            !user.getRole().equals("ROLE_SUPER_ADMIN") && 
+            !user.getRole().equals("ROLE_EMPLOYEE") && 
+            (business.getUser() == null || !business.getUser().getId().equals(user.getId()))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Error: You are not authorized to add products to this listing.");
         }
 
         Product product = new Product();
@@ -254,9 +295,12 @@ public class BusinessController {
 
         Business business = businessOpt.get();
 
-        // Security check: Only Admin/SuperAdmin can delete products
-        if (!user.getRole().equals("ROLE_ADMIN") && !user.getRole().equals("ROLE_SUPER_ADMIN")) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Error: Only administrators can delete products.");
+        // Security check: Only Admin/SuperAdmin/Employee or the listing owner can delete products
+        if (!user.getRole().equals("ROLE_ADMIN") && 
+            !user.getRole().equals("ROLE_SUPER_ADMIN") && 
+            !user.getRole().equals("ROLE_EMPLOYEE") && 
+            (business.getUser() == null || !business.getUser().getId().equals(user.getId()))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Error: You are not authorized to delete products from this listing.");
         }
 
         Optional<Product> productOpt = productRepository.findById(productId);
@@ -266,5 +310,19 @@ public class BusinessController {
 
         productRepository.delete(productOpt.get());
         return ResponseEntity.ok("Product deleted successfully.");
+    }
+
+    // AUTHENTICATED: Get all users with ROLE_BUSINESS (for data entry employees/admins to assign listings)
+    @GetMapping("/listings/business-users")
+    public ResponseEntity<List<User>> getBusinessUsers() {
+        User user = getAuthenticatedUser();
+        // Security check: Only Admin, SuperAdmin, or Employee can fetch
+        if (!user.getRole().equals("ROLE_ADMIN") && 
+            !user.getRole().equals("ROLE_SUPER_ADMIN") && 
+            !user.getRole().equals("ROLE_EMPLOYEE")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        // Retrieve only business users
+        return ResponseEntity.ok(userRepository.findByRole("ROLE_BUSINESS"));
     }
 }

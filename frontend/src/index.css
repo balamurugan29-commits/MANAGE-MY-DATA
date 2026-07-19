@@ -1,39 +1,39 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  --primary: #1e3a8a; /* Deep Navy */
-  --primary-light: #3b82f6; /* Modern Blue */
-  --primary-rgb: 30, 58, 138;
-  --secondary: #fbbf24; /* Warm Gold / Yellow Pages signature */
-  --secondary-hover: #f59e0b;
-  --accent: #10b981; /* Verified Green */
-  --accent-red: #ef4444; /* Alert Red */
+  --primary: #586EF0; /* Brand Primary from UI guide */
+  --primary-light: #7084F4; /* Brand Primary Hover from UI guide */
+  --primary-rgb: 88, 110, 240;
+  --secondary: #A855F7; /* Purple accent tone from UI guide */
+  --secondary-hover: #9333ea;
+  --accent: #10B981; /* Emerald/Success accent tone from UI guide */
+  --accent-red: #EF4444; /* Danger/Error from UI guide */
   
-  --bg-main: #f8fafc; /* Slate 50 */
+  --bg-main: #F4F7FA; /* Workspace BG from UI guide */
   --bg-card: #ffffff;
-  --bg-dark: #0f172a; /* Slate 900 */
+  --bg-dark: #0F172A;
   --bg-glass: rgba(255, 255, 255, 0.7);
   
-  --text-main: #1e293b; /* Slate 800 */
-  --text-muted: #64748b; /* Slate 500 */
-  --text-light: #94a3b8; /* Slate 400 */
+  --text-main: #0F172A;
+  --text-muted: #9CA3AF; /* Placeholder color from UI guide */
+  --text-light: #9CA3AF;
   --text-white: #ffffff;
   
-  --border-color: #e2e8f0; /* Slate 200 */
-  --border-hover: #cbd5e1; /* Slate 300 */
+  --border-color: #E5E7EB; /* Gray Border from UI guide */
+  --border-hover: #D9DBE1; /* Gray Divider from UI guide */
   
-  --radius-sm: 6px;
-  --radius-md: 12px;
+  --radius-sm: 10px; /* Input & Button border radius from UI guide */
+  --radius-md: 14px; /* KPI/Card border radius from UI guide */
   --radius-lg: 20px;
   --radius-full: 9999px;
   
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 10px 20px -5px rgba(0, 0, 0, 0.05), 0 8px 8px -6px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 2px 10px rgba(15, 23, 42, 0.08); /* KPI Card shadow from UI guide */
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.05), 0 4px 6px -4px rgba(15, 23, 42, 0.03);
   
   --font-sans: 'Inter', sans-serif;
-  --font-title: 'Outfit', sans-serif;
-  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --font-title: 'Inter', sans-serif;
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 * {
@@ -81,13 +81,13 @@ button, input, select, textarea {
 
 /* Header & Navbar */
 .navbar {
-  background: var(--bg-dark);
-  color: var(--text-white);
+  background: var(--bg-card);
+  color: var(--text-main);
   padding: 1rem 2rem;
   position: sticky;
   top: 0;
   z-index: 1000;
-  box-shadow: var(--shadow-sm);
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -100,17 +100,17 @@ button, input, select, textarea {
   font-family: var(--font-title);
   font-size: 1.5rem;
   font-weight: 800;
-  color: var(--text-white);
+  color: var(--primary);
 }
 
 .nav-logo span {
-  color: var(--secondary);
+  color: var(--text-main);
 }
 
 .nav-logo svg {
   width: 2rem;
   height: 2rem;
-  fill: var(--secondary);
+  fill: var(--primary);
 }
 
 .nav-links {
@@ -120,17 +120,17 @@ button, input, select, textarea {
 }
 
 .nav-link {
-  color: var(--text-light);
-  font-weight: 500;
+  color: var(--text-muted);
+  font-weight: 600;
   font-size: 0.95rem;
 }
 
 .nav-link:hover, .nav-link.active {
-  color: var(--secondary);
+  color: var(--primary);
 }
 
 .nav-btn {
-  background: var(--primary-light);
+  background: var(--primary);
   color: var(--text-white);
   padding: 0.5rem 1.25rem;
   border-radius: var(--radius-sm);
@@ -142,14 +142,14 @@ button, input, select, textarea {
 }
 
 .nav-btn:hover {
-  background: #2563eb;
+  background: var(--primary-light);
   transform: translateY(-1px);
 }
 
 .nav-btn-outline {
   background: transparent;
-  border: 1px solid var(--text-light);
-  color: var(--text-white);
+  border: 1px solid var(--border-hover);
+  color: var(--text-muted);
   padding: 0.5rem 1.25rem;
   border-radius: var(--radius-sm);
   font-weight: 600;
@@ -159,15 +159,15 @@ button, input, select, textarea {
 }
 
 .nav-btn-outline:hover {
-  border-color: var(--secondary);
-  color: var(--secondary);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 /* Home Page Styles */
 .hero-section {
-  background: linear-gradient(135deg, var(--bg-dark) 0%, #1e293b 100%);
+  background: linear-gradient(135deg, #0F172A 0%, #0B132B 100%);
   color: var(--text-white);
-  padding: 5rem 2rem;
+  padding: 5.5rem 2rem;
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -180,8 +180,7 @@ button, input, select, textarea {
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 40%),
-              radial-gradient(circle at 90% 80%, rgba(251, 191, 36, 0.08) 0%, transparent 40%);
+  background: radial-gradient(circle at right top, rgba(88, 110, 240, 0.45) 0%, transparent 65%);
   pointer-events: none;
 }
 
@@ -688,32 +687,37 @@ button, input, select, textarea {
 
 .form-control {
   width: 100%;
-  padding: 0.65rem 1rem;
+  padding: 0.75rem 1rem;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--border-color);
-  background: var(--bg-main);
+  border: 1px solid var(--border-hover);
+  background: #f8fafc;
+  color: var(--text-main);
+  font-weight: 500;
   transition: var(--transition);
 }
 
 .form-control:focus {
-  border-color: var(--primary-light);
+  border-color: var(--primary);
   background: var(--bg-card);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 .btn-primary {
   width: 100%;
   background: var(--primary);
   color: var(--text-white);
-  padding: 0.75rem;
+  padding: 0.85rem;
   border-radius: var(--radius-sm);
   font-weight: 700;
   border: none;
   cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.15);
   transition: var(--transition);
 }
 
 .btn-primary:hover {
-  background: #1d3557;
+  background: var(--primary-light);
+  transform: translateY(-1px);
 }
 
 /* Dashboard Styles */
@@ -724,8 +728,9 @@ button, input, select, textarea {
 }
 
 .dashboard-sidebar {
-  background: var(--bg-dark);
-  color: var(--text-white);
+  background: var(--bg-card);
+  border-right: 1px solid var(--border-color);
+  color: var(--text-main);
   padding: 2rem 1rem;
 }
 
@@ -735,20 +740,26 @@ button, input, select, textarea {
   gap: 0.75rem;
   padding: 0.75rem 1rem;
   border-radius: var(--radius-sm);
-  color: var(--text-light);
+  color: var(--text-muted);
   cursor: pointer;
   transition: var(--transition);
-  font-weight: 500;
+  font-weight: 600;
   margin-bottom: 0.5rem;
 }
 
-.dashboard-sidebar-item:hover, .dashboard-sidebar-item.active {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--secondary);
+.dashboard-sidebar-item:hover {
+  background: #f8fafc;
+  color: var(--primary);
+}
+
+.dashboard-sidebar-item.active {
+  background: var(--primary);
+  color: var(--text-white);
 }
 
 .dashboard-content {
   padding: 2.5rem;
+  background-color: var(--bg-main);
 }
 
 /* Admin Dashboard Table */
@@ -892,3 +903,48 @@ button, input, select, textarea {
     justify-content: center;
   }
 }
+
+/* Dashboard layout styling */
+.dashboard-layout {
+  display: flex;
+  background-color: #f8fafc;
+  width: 100%;
+}
+
+.dashboard-sidebar {
+  width: 260px;
+  background-color: #ffffff;
+  border-right: 1px solid var(--border-color);
+  padding: 1.5rem 0.5rem;
+}
+
+.dashboard-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  margin-bottom: 0.25rem;
+  transition: var(--transition);
+}
+
+.dashboard-sidebar-item:hover {
+  background-color: #f1f5f9;
+  color: var(--primary);
+}
+
+.dashboard-sidebar-item.active {
+  background-color: #f5f3ff;
+  color: var(--primary);
+}
+
+.dashboard-content {
+  flex: 1;
+  background-color: #f8fafc;
+  overflow-y: auto;
+}
+

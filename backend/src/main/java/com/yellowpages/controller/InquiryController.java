@@ -62,7 +62,12 @@ public class InquiryController {
     @GetMapping("/inquiries")
     public ResponseEntity<?> getMyInquiries() {
         User user = getAuthenticatedUser();
-        List<Inquiry> inquiries = inquiryRepository.findByBusinessUserIdOrderByCreatedAtDesc(user.getId());
+        List<Inquiry> inquiries;
+        if (user.getRole().equals("ROLE_ADMIN") || user.getRole().equals("ROLE_SUPER_ADMIN") || user.getRole().equals("ROLE_EMPLOYEE")) {
+            inquiries = inquiryRepository.findAllByOrderByCreatedAtDesc();
+        } else {
+            inquiries = inquiryRepository.findByBusinessUserIdOrderByCreatedAtDesc(user.getId());
+        }
         return ResponseEntity.ok(inquiries);
     }
 
@@ -78,8 +83,11 @@ public class InquiryController {
 
         Inquiry inquiry = inquiryOpt.get();
 
-        // Check if listing belongs to authenticated user
-        if (!inquiry.getBusiness().getUser().getId().equals(user.getId()) && !user.getRole().contains("ADMIN")) {
+        // Check if listing belongs to authenticated user or is admin/employee
+        if ((inquiry.getBusiness().getUser() == null || !inquiry.getBusiness().getUser().getId().equals(user.getId())) && 
+            !user.getRole().equals("ROLE_ADMIN") && 
+            !user.getRole().equals("ROLE_SUPER_ADMIN") && 
+            !user.getRole().equals("ROLE_EMPLOYEE")) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Error: Permission denied.");
         }
 

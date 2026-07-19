@@ -19,7 +19,14 @@ public class BusinessRequest {
 
     private String address;
     private String contactPhone;
+    private String contactPhone2;
+    private String contactPhone3;
     private String contactEmail;
+    private String contactEmail2;
+    private String contactEmail3;
     private String website;
     private String logoUrl;
+    private String gstNumber;
+    private String area;
+    private Integer userId;
 }

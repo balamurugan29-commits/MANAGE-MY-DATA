@@ -9,4 +9,5 @@ import java.util.List;
 public interface InquiryRepository extends JpaRepository<Inquiry, Integer> {
     List<Inquiry> findByBusinessIdOrderByCreatedAtDesc(Integer businessId);
     List<Inquiry> findByBusinessUserIdOrderByCreatedAtDesc(Integer userId);
+    List<Inquiry> findAllByOrderByCreatedAtDesc();
 }

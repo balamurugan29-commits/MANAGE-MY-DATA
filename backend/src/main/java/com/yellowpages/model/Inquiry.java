@@ -26,7 +26,7 @@ public class Inquiry {
     @Column(name = "sender_email", nullable = false, length = 100)
     private String senderEmail;
 
-    @Column(name = "sender_phone", length = 20)
+    @Column(name = "sender_phone", length = 12)
     private String senderPhone;
 
     @Column(nullable = false, columnDefinition = "NVARCHAR(MAX)")

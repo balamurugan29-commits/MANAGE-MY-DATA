@@ -15,13 +15,13 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 50)
     private String name;
 
-    @Column(name = "icon_class", length = 50)
+    @Column(name = "icon_class", length = 20)
     private String iconClass;
 
-    @Column(unique = true, nullable = false, length = 100)
+    @Column(unique = true, nullable = false, length = 50)
     private String slug;
 
     @Column(columnDefinition = "NVARCHAR(MAX)")

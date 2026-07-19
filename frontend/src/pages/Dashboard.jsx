@@ -1,9 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, ShoppingBag, MailCheck, User, Award, ShieldAlert, BadgeInfo, CheckCircle2, AlertCircle, Plus, Trash2, CheckSquare } from 'lucide-react';
+import { Building2, ShoppingBag, MailCheck, User, Award, ShieldAlert, BadgeInfo, CheckCircle2, AlertCircle, Plus, Trash2, CheckSquare, Eye, Upload } from 'lucide-react';
+
+const CITY_AREAS = {
+  "Chennai": ["Adyar", "Velachery", "T. Nagar", "Anna Nagar", "Guindy", "OMR", "Mylapore", "Tambaram", "Chromepet", "Nungambakkam"],
+  "Coimbatore": ["Gandhipuram", "Peelamedu", "RS Puram", "Singanallur", "Saibaba Colony", "Saravanampatti", "Kovaipudur"],
+  "Bengaluru": ["Koramangala", "Indiranagar", "HSR Layout", "Whitefield", "Jayanagar", "Electronic City", "Marathahalli", "BTM Layout"],
+  "Mumbai": ["Andheri", "Bandra", "Colaba", "Borivali", "Dadar", "Thane", "Vashi", "Juhu", "Kurla"],
+  "Delhi": ["Connaught Place", "Dwarka", "Saket", "Karol Bagh", "Vasant Kunj", "Rajouri Garden", "Lajpat Nagar", "Rohini"],
+  "Pune": ["Kothrud", "Koregaon Park", "Hinjewadi", "Viman Nagar", "Baner", "Hadapsar"],
+  "Hyderabad": ["Gachibowli", "Madhapur", "Jubilee Hills", "Banjara Hills", "Secunderabad", "Kondapur"],
+  "Kolkata": ["Salt Lake", "New Town", "Park Street", "Howrah", "Tollygunge", "Garia"],
+  "Jaipur": ["Malviya Nagar", "Vaishali Nagar", "C Scheme", "Mansarovar", "Raja Park"],
+  "Ahmedabad": ["Satellite", "C G Road", "Vastrapur", "Bodakdev", "Bapunagar", "Ghatlodia"],
+  "Surat": ["Varachha", "Adajan", "Piplod", "Vesu", "Katargam"],
+  "Noida": ["Sector 62", "Sector 18", "Sector 15", "Sector 137"],
+  "Gurugram": ["DLF Phase 3", "Sector 45", "Sohna Road", "Golf Course Road"],
+  "Vadodara": ["Alkapuri", "Akota", "Gotri", "Manjalpur"],
+  "Ludhiana": ["Model Town", "Civil Lines", "Sarabha Nagar", "Ferozepur Road"]
+};
 
 export default function Dashboard({ user }) {
   const navigate = useNavigate();
+  const logoInputRef = useRef(null);
+  const productImgInputRef = useRef(null);
+  const [previewImage, setPreviewImage] = useState(null);
   const [activeTab, setActiveTab] = useState('listing'); // listing, products, inquiries
   
   // Listings state
@@ -18,13 +39,23 @@ export default function Dashboard({ user }) {
   const [bizDesc, setBizDesc] = useState('');
   const [bizCatId, setBizCatId] = useState('');
   const [bizCityId, setBizCityId] = useState('');
+  const [cityInputVal, setCityInputVal] = useState('');
+  const [bizState, setBizState] = useState('');
+  const [bizArea, setBizArea] = useState('');
   const [bizAddress, setBizAddress] = useState('');
   const [bizPhone, setBizPhone] = useState('');
+  const [bizPhone2, setBizPhone2] = useState('');
+  const [bizPhone3, setBizPhone3] = useState('');
   const [bizEmail, setBizEmail] = useState('');
+  const [bizEmail2, setBizEmail2] = useState('');
+  const [bizEmail3, setBizEmail3] = useState('');
   const [bizWeb, setBizWeb] = useState('');
   const [bizLogo, setBizLogo] = useState('');
+  const [bizGst, setBizGst] = useState('');
   const [bizSuccess, setBizSuccess] = useState('');
   const [bizError, setBizError] = useState('');
+  const [businessUsers, setBusinessUsers] = useState([]);
+  const [bizUserId, setBizUserId] = useState('');
 
   // Form states (Products)
   const [products, setProducts] = useState([]);
@@ -45,13 +76,22 @@ export default function Dashboard({ user }) {
       navigate('/login');
       return;
     }
-    if (user.role !== 'ROLE_ADMIN' && user.role !== 'ROLE_SUPER_ADMIN') {
+    if (user.role === 'ROLE_ADMIN' || user.role === 'ROLE_SUPER_ADMIN') {
+      navigate('/admin');
       return;
     }
-
     // Load category and city helpers
     fetch(`${API_URL}/categories`).then(r => r.json()).then(setCategories).catch(console.error);
     fetch(`${API_URL}/cities`).then(r => r.json()).then(setCities).catch(console.error);
+
+    if (user.role === 'ROLE_EMPLOYEE') {
+      fetch(`${API_URL}/listings/business-users`, {
+        headers: { 'Authorization': `Bearer ${user.token}` }
+      })
+        .then(r => r.json())
+        .then(setBusinessUsers)
+        .catch(console.error);
+    }
 
     fetchListings();
   }, [user]);
@@ -66,18 +106,29 @@ export default function Dashboard({ user }) {
         const data = await res.json();
         setMyListings(data);
         if (data.length > 0) {
-          const biz = data[0];
+          const currentId = selectedListing ? selectedListing.id : null;
+          // Look for previously selected listing, otherwise default to first in list
+          const biz = (currentId && data.find(b => b.id === currentId)) || data[0];
           setSelectedListing(biz);
           // Pre-populate fields
           setBizName(biz.name);
           setBizDesc(biz.description || '');
           setBizCatId(biz.category?.id || '');
           setBizCityId(biz.city?.id || '');
+          setCityInputVal(biz.city?.name || '');
+          setBizState(biz.city?.state || '');
+          setBizArea(biz.area || '');
           setBizAddress(biz.address || '');
           setBizPhone(biz.contactPhone || '');
+          setBizPhone2(biz.contactPhone2 || '');
+          setBizPhone3(biz.contactPhone3 || '');
           setBizEmail(biz.contactEmail || '');
+          setBizEmail2(biz.contactEmail2 || '');
+          setBizEmail3(biz.contactEmail3 || '');
           setBizWeb(biz.website || '');
           setBizLogo(biz.logoUrl || '');
+          setBizGst(biz.gstNumber || '');
+          setBizUserId(biz.user?.id || '');
 
           // Fetch products & inquiries for this business
           fetchProducts(biz.id);
@@ -105,16 +156,75 @@ export default function Dashboard({ user }) {
       .catch(console.error);
   };
 
+  const handleAddNewListing = () => {
+    setSelectedListing(null);
+    setBizName('');
+    setBizDesc('');
+    setBizCatId('');
+    setBizCityId('');
+    setCityInputVal('');
+    setBizState('');
+    setBizArea('');
+    setBizAddress('');
+    setBizPhone('');
+    setBizPhone2('');
+    setBizPhone3('');
+    setBizEmail('');
+    setBizEmail2('');
+    setBizEmail3('');
+    setBizWeb('');
+    setBizLogo('');
+    setBizGst('');
+    setBizUserId('');
+    setProducts([]);
+    setInquiries([]);
+  };
+
   // Submit Listing Update or Creation
   const handleSaveListing = async (e) => {
     e.preventDefault();
     setBizError('');
     setBizSuccess('');
 
-    const url = selectedListing ? `${API_URL}/listings/${selectedListing.id}` : `${API_URL}/listings`;
-    const method = selectedListing ? 'PUT' : 'POST';
+    let cityIdToSubmit = bizCityId;
 
     try {
+      // If the city is custom/new, create it first
+      if (bizCityId === 'NEW' || !bizCityId) {
+        if (!cityInputVal.trim()) {
+          throw new Error("Please specify a city name.");
+        }
+        const createCityRes = await fetch(`${API_URL}/cities`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${user.token}`
+          },
+          body: JSON.stringify({
+            name: cityInputVal.trim(),
+            state: bizState
+          })
+        });
+
+        if (!createCityRes.ok) {
+          throw new Error("Failed to register new city location.");
+        }
+
+        const createdCity = await createCityRes.json();
+        cityIdToSubmit = createdCity.id.toString();
+        setBizCityId(cityIdToSubmit);
+        
+        // Refresh local cities array
+        const citiesRes = await fetch(`${API_URL}/cities`);
+        if (citiesRes.ok) {
+          const freshCities = await citiesRes.json();
+          setCities(freshCities);
+        }
+      }
+
+      const url = selectedListing ? `${API_URL}/listings/${selectedListing.id}` : `${API_URL}/listings`;
+      const method = selectedListing ? 'PUT' : 'POST';
+
       const res = await fetch(url, {
         method,
         headers: {
@@ -125,12 +235,19 @@ export default function Dashboard({ user }) {
           name: bizName,
           description: bizDesc,
           categoryId: parseInt(bizCatId),
-          cityId: parseInt(bizCityId),
+          cityId: parseInt(cityIdToSubmit),
           address: bizAddress,
           contactPhone: bizPhone,
+          contactPhone2: bizPhone2 || null,
+          contactPhone3: bizPhone3 || null,
           contactEmail: bizEmail,
+          contactEmail2: bizEmail2 || null,
+          contactEmail3: bizEmail3 || null,
           website: bizWeb,
-          logoUrl: bizLogo
+          logoUrl: bizLogo,
+          gstNumber: bizGst || null,
+          area: bizArea,
+          userId: bizUserId ? parseInt(bizUserId) : null
         })
       });
 
@@ -142,6 +259,62 @@ export default function Dashboard({ user }) {
       fetchListings();
     } catch (err) {
       setBizError(err.message);
+    }
+  };
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch(`${API_URL}/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${user.token}`
+        },
+        body: formData
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to upload logo image.");
+      }
+
+      const data = await res.json();
+      setBizLogo(data.url);
+      setBizSuccess("Logo uploaded successfully!");
+    } catch (err) {
+      setBizError(err.message);
+    }
+  };
+
+  const handleProductImgUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch(`${API_URL}/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${user.token}`
+        },
+        body: formData
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to upload product image.");
+      }
+
+      const data = await res.json();
+      setProdImg(data.url);
+      setProdSuccess("Product image uploaded successfully!");
+    } catch (err) {
+      setProdError(err.message);
     }
   };
 
@@ -215,23 +388,6 @@ export default function Dashboard({ user }) {
 
   if (!user) return null;
 
-  if (user.role !== 'ROLE_ADMIN' && user.role !== 'ROLE_SUPER_ADMIN') {
-    return (
-      <div className="container" style={{ padding: '3rem 1rem', textAlign: 'center' }}>
-        <div style={{ maxWidth: '600px', margin: '0 auto', background: '#ffffff', padding: '3rem 2rem', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: 'var(--shadow-md)' }}>
-          <ShieldAlert size={48} style={{ color: 'var(--accent-red)', marginBottom: '1rem' }} />
-          <h3>Data Entry Access Restricted</h3>
-          <p style={{ color: 'var(--text-muted)', marginTop: '1rem', marginBottom: '2rem', lineHeight: '1.6' }}>
-            Only **Administrators** are authorized to perform data entry, create new listings, or upload product catalogs on MANAGE MY DATA.
-          </p>
-          <button onClick={() => navigate('/')} className="btn-primary" style={{ width: 'auto', padding: '0.5rem 1.5rem' }}>
-            Go to Home
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="dashboard-layout">
       {/* Sidebar Panel Navigation */}
@@ -241,11 +397,55 @@ export default function Dashboard({ user }) {
           <span style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>B2B Dashboard</span>
         </div>
 
+        {(user.role === 'ROLE_EMPLOYEE' || (user.role === 'ROLE_BUSINESS' && myListings.length > 1)) && (
+          <div style={{ padding: '0 1rem 1.5rem 1rem', borderBottom: '1px solid #1e293b', marginBottom: '1.5rem' }}>
+            <label style={{ display: 'block', color: 'var(--text-light)', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Active Listing Workspace:</label>
+            <select
+              value={selectedListing ? selectedListing.id : ''}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === '') {
+                  handleAddNewListing();
+                } else {
+                  const biz = myListings.find(b => b.id === parseInt(val));
+                  setSelectedListing(biz);
+                  setBizName(biz.name);
+                  setBizDesc(biz.description || '');
+                  setBizCatId(biz.category?.id || '');
+                  setBizCityId(biz.city?.id || '');
+                  setCityInputVal(biz.city?.name || '');
+                  setBizState(biz.city?.state || '');
+                  setBizArea(biz.area || '');
+                  setBizAddress(biz.address || '');
+                  setBizPhone(biz.contactPhone || '');
+                  setBizPhone2(biz.contactPhone2 || '');
+                  setBizPhone3(biz.contactPhone3 || '');
+                  setBizEmail(biz.contactEmail || '');
+                  setBizEmail2(biz.contactEmail2 || '');
+                  setBizEmail3(biz.contactEmail3 || '');
+                  setBizWeb(biz.website || '');
+                  setBizLogo(biz.logoUrl || '');
+                  setBizGst(biz.gstNumber || '');
+                  setBizUserId(biz.user?.id || '');
+                  fetchProducts(biz.id);
+                }
+              }}
+              className="form-control"
+              style={{ padding: '0.45rem', fontSize: '0.85rem', background: '#f8fafc', color: 'var(--text-main)', border: '1px solid var(--border-hover)', width: '100%', borderRadius: '8px', fontWeight: 600 }}
+            >
+              {user.role === 'ROLE_EMPLOYEE' && <option value="">+ Add New Listing</option>}
+              {myListings.map(b => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div
           onClick={() => setActiveTab('listing')}
           className={`dashboard-sidebar-item ${activeTab === 'listing' ? 'active' : ''}`}
         >
-          <Building2 size={18} /> My Listing
+          <Building2 size={18} /> {selectedListing ? "Company Profile" : "Create Listing"}
         </div>
 
         {selectedListing && (
@@ -292,6 +492,29 @@ export default function Dashboard({ user }) {
                   )}
                 </div>
 
+                {selectedListing && !selectedListing.isApproved && (
+                  <div style={{
+                    background: '#fffbeb',
+                    border: '1px solid #fde68a',
+                    padding: '1.25rem',
+                    borderRadius: '12px',
+                    color: '#92400e',
+                    marginBottom: '1.5rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.5rem',
+                    boxShadow: 'var(--shadow-sm)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold', fontSize: '1rem' }}>
+                      <AlertCircle size={20} color="#d97706" style={{ flexShrink: 0 }} />
+                      <span>Listing Under Review (Approval Pending)</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '0.9rem', color: '#b45309', lineHeight: '1.5' }}>
+                      Your company profile has been submitted and is currently **Pending Approval**. It will be visible in the public search directory once verified and approved by the platform administrators. You can still modify your details below.
+                    </p>
+                  </div>
+                )}
+
                 {!selectedListing && (
                   <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', padding: '1rem', borderRadius: '8px', color: '#1e3a8a', marginBottom: '1.5rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                     <BadgeInfo size={20} />
@@ -313,6 +536,23 @@ export default function Dashboard({ user }) {
 
                 <form onSubmit={handleSaveListing} style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '2rem', borderRadius: '12px' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                    {user.role === 'ROLE_EMPLOYEE' && (
+                      <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                        <label className="form-label">Associate with Business Owner (User Account) *</label>
+                        <select
+                          className="form-control"
+                          required
+                          value={bizUserId}
+                          onChange={(e) => setBizUserId(e.target.value)}
+                        >
+                          <option value="">Select Business User</option>
+                          {businessUsers.map(u => (
+                            <option key={u.id} value={u.id}>{u.username} ({u.email})</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
                     <div className="form-group">
                       <label className="form-label">Company Name *</label>
                       <input
@@ -326,13 +566,94 @@ export default function Dashboard({ user }) {
                     </div>
 
                     <div className="form-group">
-                      <label className="form-label">Logo / Image URL</label>
+                      <label className="form-label">Company Logo / Image</label>
+                      
+                      {/* Hidden Input */}
+                      <input
+                        type="file"
+                        ref={logoInputRef}
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={handleLogoUpload}
+                      />
+
+                      {/* Clickable Custom Upload Box Container */}
+                      <div 
+                        onClick={() => logoInputRef.current.click()}
+                        style={{ 
+                          border: '1px dashed var(--border-hover)', 
+                          borderRadius: '14px', 
+                          padding: '1.25rem', 
+                          background: '#ffffff',
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'space-between',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          boxShadow: '0 2px 10px rgba(15, 23, 42, 0.04)'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
+                        onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-hover)'}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                          <div style={{ 
+                            width: '42px', 
+                            height: '42px', 
+                            borderRadius: '50%', 
+                            background: '#EFF6FF', 
+                            color: '#3B82F6', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center' 
+                          }}>
+                            <Upload size={20} />
+                          </div>
+                          <div>
+                            <p style={{ fontSize: '11px', fontWeight: 700, color: '#1e293b', margin: 0 }}>Company Logo Upload</p>
+                            <p style={{ fontSize: '9px', color: '#94a3b8', margin: '2px 0 0 0' }}>Drag & drop or click • Single file • Max 5MB</p>
+                          </div>
+                        </div>
+
+                        {bizLogo && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={(e) => e.stopPropagation()}>
+                            <button
+                              type="button"
+                              onClick={() => setPreviewImage(bizLogo)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                color: 'var(--primary)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '4px'
+                              }}
+                              title="View Logo"
+                            >
+                              <Eye size={18} />
+                            </button>
+                            <img 
+                              src={bizLogo.startsWith('/uploads') ? `http://localhost:8080${bizLogo}` : bizLogo} 
+                              alt="Logo Preview" 
+                              style={{ width: '32px', height: '32px', borderRadius: '6px', objectFit: 'cover', border: '1px solid var(--border-hover)' }} 
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+                    <div className="form-group">
+                      <label className="form-label">GST Number</label>
                       <input
                         type="text"
                         className="form-control"
-                        placeholder="Paste logo image URL link"
-                        value={bizLogo}
-                        onChange={(e) => setBizLogo(e.target.value)}
+                        placeholder="e.g. 22AAAAA0000A1Z5 (Optional)"
+                        value={bizGst}
+                        onChange={(e) => setBizGst(e.target.value.toUpperCase())}
+                        maxLength={15}
                       />
                     </div>
                   </div>
@@ -354,18 +675,80 @@ export default function Dashboard({ user }) {
                     </div>
 
                     <div className="form-group">
-                      <label className="form-label">City Location *</label>
+                      <label className="form-label">State *</label>
                       <select
                         className="form-control"
                         required
-                        value={bizCityId}
-                        onChange={(e) => setBizCityId(e.target.value)}
+                        value={bizState}
+                        onChange={(e) => {
+                          const stateVal = e.target.value;
+                          setBizState(stateVal);
+                          setBizCityId('');
+                          setCityInputVal('');
+                          setBizArea('');
+                        }}
                       >
-                        <option value="">Select operation city</option>
-                        {cities.map(city => (
-                          <option key={city.id} value={city.id}>{city.name}, {city.state}</option>
+                        <option value="">Select State</option>
+                        {[...new Set(cities.map(c => c.state))].sort().map(st => (
+                          <option key={st} value={st}>{st}</option>
                         ))}
                       </select>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                    <div className="form-group">
+                      <label className="form-label">City Location *</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Type or select city..."
+                        value={cityInputVal}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setCityInputVal(val);
+                          
+                          // Check if it matches an existing city for the selected state
+                          const match = cities.find(c => c.state === bizState && c.name.toLowerCase() === val.toLowerCase().trim());
+                          if (match) {
+                            setBizCityId(match.id.toString());
+                          } else {
+                            setBizCityId('NEW');
+                          }
+                        }}
+                        disabled={!bizState}
+                        list="city-suggestions"
+                        required
+                      />
+                      <datalist id="city-suggestions">
+                        {cities.filter(c => c.state === bizState).map(city => (
+                          <option key={city.id} value={city.name} />
+                        ))}
+                      </datalist>
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Area / Location *</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Type or select area..."
+                        value={bizArea}
+                        onChange={(e) => setBizArea(e.target.value)}
+                        disabled={!bizCityId}
+                        list="area-suggestions"
+                        required
+                      />
+                      <datalist id="area-suggestions">
+                        {(() => {
+                          const selectedCityObj = cities.find(c => c.id === parseInt(bizCityId));
+                          const cityName = selectedCityObj ? selectedCityObj.name : '';
+                          const areas = CITY_AREAS[cityName] || ["Downtown", "Industrial Area", "Main Market", "Suburbs", "Central Business District"];
+                          return areas.map(ar => (
+                            <option key={ar} value={ar} />
+                          ));
+                        })()}
+                      </datalist>
                     </div>
                   </div>
 
@@ -391,29 +774,79 @@ export default function Dashboard({ user }) {
                     />
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
                     <div className="form-group">
-                      <label className="form-label">Contact Phone</label>
+                      <label className="form-label">Contact Phone *</label>
                       <input
                         type="text"
                         className="form-control"
-                        placeholder="Office telephone/mobile"
+                        placeholder="Primary phone (Mandatory)"
+                        required
                         value={bizPhone}
                         onChange={(e) => setBizPhone(e.target.value)}
                       />
                     </div>
 
                     <div className="form-group">
-                      <label className="form-label">Contact Email</label>
+                      <label className="form-label">Contact Phone 2</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Alternative phone 2"
+                        value={bizPhone2}
+                        onChange={(e) => setBizPhone2(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Contact Phone 3</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Alternative phone 3"
+                        value={bizPhone3}
+                        onChange={(e) => setBizPhone3(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+                    <div className="form-group">
+                      <label className="form-label">Contact Email *</label>
                       <input
                         type="email"
                         className="form-control"
-                        placeholder="Inquiry box email"
+                        placeholder="Primary email (Mandatory)"
+                        required
                         value={bizEmail}
                         onChange={(e) => setBizEmail(e.target.value)}
                       />
                     </div>
 
+                    <div className="form-group">
+                      <label className="form-label">Contact Email 2</label>
+                      <input
+                        type="email"
+                        className="form-control"
+                        placeholder="Alternative email 2"
+                        value={bizEmail2}
+                        onChange={(e) => setBizEmail2(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Contact Email 3</label>
+                      <input
+                        type="email"
+                        className="form-control"
+                        placeholder="Alternative email 3"
+                        value={bizEmail3}
+                        onChange={(e) => setBizEmail3(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
                     <div className="form-group">
                       <label className="form-label">Website URL</label>
                       <input
@@ -448,7 +881,7 @@ export default function Dashboard({ user }) {
                         {products.map(prod => (
                           <div key={prod.id} style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '1rem', alignItems: 'center' }}>
                             <img
-                              src={prod.imageUrl || "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=300"}
+                              src={prod.imageUrl ? (prod.imageUrl.startsWith('/uploads') ? 'http://localhost:8080' + prod.imageUrl : prod.imageUrl) : "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=300"}
                               alt={prod.name}
                               style={{ width: '60px', height: '60px', borderRadius: '6px', objectFit: 'cover', background: '#f1f5f9' }}
                             />
@@ -516,14 +949,81 @@ export default function Dashboard({ user }) {
                     </div>
 
                     <div className="form-group">
-                      <label className="form-label">Product Image URL</label>
+                      <label className="form-label">Product Image</label>
+                      
+                      {/* Hidden Input */}
                       <input
-                        type="text"
-                        className="form-control"
-                        placeholder="https://images.com/pump.jpg"
-                        value={prodImg}
-                        onChange={(e) => setProdImg(e.target.value)}
+                        type="file"
+                        ref={productImgInputRef}
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={handleProductImgUpload}
                       />
+
+                      {/* Clickable Custom Upload Box Container */}
+                      <div 
+                        onClick={() => productImgInputRef.current.click()}
+                        style={{ 
+                          border: '1px dashed var(--border-hover)', 
+                          borderRadius: '14px', 
+                          padding: '1.25rem', 
+                          background: '#ffffff',
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'space-between',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          boxShadow: '0 2px 10px rgba(15, 23, 42, 0.04)'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
+                        onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-hover)'}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                          <div style={{ 
+                            width: '42px', 
+                            height: '42px', 
+                            borderRadius: '50%', 
+                            background: '#EFF6FF', 
+                            color: '#3B82F6', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center' 
+                          }}>
+                            <Upload size={20} />
+                          </div>
+                          <div>
+                            <p style={{ fontSize: '11px', fontWeight: 700, color: '#1e293b', margin: 0 }}>Product Image Upload</p>
+                            <p style={{ fontSize: '9px', color: '#94a3b8', margin: '2px 0 0 0' }}>Drag & drop or click • Single file • Max 5MB</p>
+                          </div>
+                        </div>
+
+                        {prodImg && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={(e) => e.stopPropagation()}>
+                            <button
+                              type="button"
+                              onClick={() => setPreviewImage(prodImg)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                color: 'var(--primary)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '4px'
+                              }}
+                              title="View Product Image"
+                            >
+                              <Eye size={18} />
+                            </button>
+                            <img 
+                              src={prodImg.startsWith('/uploads') ? `http://localhost:8080${prodImg}` : prodImg} 
+                              alt="Product Preview" 
+                              style={{ width: '32px', height: '32px', borderRadius: '6px', objectFit: 'cover', border: '1px solid var(--border-hover)' }} 
+                            />
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <div className="form-group" style={{ marginBottom: '1.5rem' }}>
@@ -614,6 +1114,59 @@ export default function Dashboard({ user }) {
           </>
         )}
       </main>
+
+      {/* Photo Preview Modal */}
+      {previewImage && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.6)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '2rem'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            padding: '1.5rem',
+            borderRadius: '16px',
+            maxWidth: '500px',
+            width: '100%',
+            position: 'relative',
+            boxShadow: 'var(--shadow-lg)'
+          }}>
+            <button
+              type="button"
+              onClick={() => setPreviewImage(null)}
+              style={{
+                position: 'absolute',
+                top: '1rem',
+                right: '1rem',
+                border: 'none',
+                background: 'none',
+                cursor: 'pointer',
+                color: 'var(--text-light)',
+                fontSize: '1.5rem',
+                fontWeight: 'bold'
+              }}
+            >
+              &times;
+            </button>
+            <h4 style={{ marginBottom: '1rem', color: 'var(--text-main)', fontWeight: 700 }}>Photo Preview</h4>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', background: '#f8fafc', borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--border-color)', minHeight: '200px' }}>
+              <img
+                src={previewImage.startsWith('/uploads') ? `http://localhost:8080${previewImage}` : previewImage}
+                alt="Uploaded Preview"
+                style={{ maxWidth: '100%', maxHeight: '400px', objectFit: 'contain' }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

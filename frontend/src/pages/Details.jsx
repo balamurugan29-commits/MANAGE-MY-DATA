@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { MapPin, Phone, Mail, Globe, Award, Star, ShoppingBag, MessageSquare, Send, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
+import { MapPin, Phone, Mail, Globe, Award, Star, ShoppingBag, MessageSquare, Send, CheckCircle, AlertCircle, RefreshCw, Briefcase } from 'lucide-react';
 import MapComponent from '../components/MapComponent';
 
 export default function Details() {
@@ -84,7 +84,7 @@ export default function Details() {
 
       if (!res.ok) throw new Error("Could not send lead inquiry.");
       
-      setInquirySuccess("Inquiry sent successfully!");
+      setInquirySuccess("Your inquiry has been successfully sent. The listing owner will contact you shortly.");
       setInquiryName('');
       setInquiryEmail('');
       setInquiryPhone('');
@@ -156,8 +156,10 @@ export default function Details() {
       <section className="business-detail-header">
         <div className="container" style={{ display: 'flex', gap: '2rem', alignItems: 'center', flexWrap: 'wrap' }}>
           {/* Logo Badge mock */}
-          <div style={{ width: '120px', height: '120px', background: '#ffffff', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', fontWeight: 800, fontSize: '2.5rem', boxShadow: 'var(--shadow-lg)' }}>
-            {business.name.charAt(0)}
+          <div style={{ width: '120px', height: '120px', background: '#ffffff', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', fontWeight: 800, fontSize: '2.5rem', boxShadow: 'var(--shadow-lg)', overflow: 'hidden' }}>
+            {business.logoUrl ? (
+              <img src={business.logoUrl.startsWith('/uploads') ? `http://localhost:8080${business.logoUrl}` : business.logoUrl} alt={business.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : business.name.charAt(0)}
           </div>
           
           <div style={{ flex: 1 }}>
@@ -181,7 +183,7 @@ export default function Details() {
               <span>&bull;</span>
               
               <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: '#cbd5e1' }}>
-                <MapPin size={16} /> {business.city?.name}, {business.city?.state}
+                <MapPin size={16} /> {business.area ? `${business.area}, ` : ''}{business.city?.name}, {business.city?.state}
               </span>
             </div>
           </div>
@@ -214,7 +216,7 @@ export default function Details() {
                   {products.map((prod) => (
                     <div key={prod.id} className="product-card">
                       <img 
-                        src={prod.imageUrl || "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=300"} 
+                        src={prod.imageUrl ? (prod.imageUrl.startsWith('/uploads') ? 'http://localhost:8080' + prod.imageUrl : prod.imageUrl) : "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=300"} 
                         alt={prod.name} 
                         className="product-img"
                         onError={(e) => {
@@ -347,26 +349,30 @@ export default function Details() {
                   <div>
                     <strong>Address</strong>
                     <div style={{ color: 'var(--text-muted)', marginTop: '0.15rem' }}>{business.address || "Industrial Area Phase 2"}</div>
-                    <div style={{ color: 'var(--text-muted)' }}>{business.city?.name}, {business.city?.state}</div>
+                    <div style={{ color: 'var(--text-muted)' }}>{business.area ? `${business.area}, ` : ''}{business.city?.name}, {business.city?.state}</div>
                   </div>
                 </div>
 
-                {business.contactPhone && (
-                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                    <Phone size={18} style={{ color: 'var(--primary-light)', flexShrink: 0 }} />
+                {(business.contactPhone || business.contactPhone2 || business.contactPhone3) && (
+                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                    <Phone size={18} style={{ color: 'var(--primary-light)', flexShrink: 0, marginTop: '2px' }} />
                     <div>
-                      <strong>Phone</strong>
-                      <div style={{ color: 'var(--text-muted)', marginTop: '0.15rem' }}>{business.contactPhone}</div>
+                      <strong>Phone Number(s)</strong>
+                      {business.contactPhone && <div style={{ color: 'var(--text-muted)', marginTop: '0.15rem' }}>{business.contactPhone}</div>}
+                      {business.contactPhone2 && <div style={{ color: 'var(--text-muted)' }}>{business.contactPhone2}</div>}
+                      {business.contactPhone3 && <div style={{ color: 'var(--text-muted)' }}>{business.contactPhone3}</div>}
                     </div>
                   </div>
                 )}
 
-                {business.contactEmail && (
-                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                    <Mail size={18} style={{ color: 'var(--primary-light)', flexShrink: 0 }} />
+                {(business.contactEmail || business.contactEmail2 || business.contactEmail3) && (
+                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                    <Mail size={18} style={{ color: 'var(--primary-light)', flexShrink: 0, marginTop: '2px' }} />
                     <div>
-                      <strong>Email</strong>
-                      <div style={{ color: 'var(--text-muted)', marginTop: '0.15rem' }}>{business.contactEmail}</div>
+                      <strong>Email Address(es)</strong>
+                      {business.contactEmail && <div style={{ color: 'var(--text-muted)', marginTop: '0.15rem' }}>{business.contactEmail}</div>}
+                      {business.contactEmail2 && <div style={{ color: 'var(--text-muted)' }}>{business.contactEmail2}</div>}
+                      {business.contactEmail3 && <div style={{ color: 'var(--text-muted)' }}>{business.contactEmail3}</div>}
                     </div>
                   </div>
                 )}
@@ -380,6 +386,18 @@ export default function Details() {
                         <a href={business.website.startsWith('http') ? business.website : `https://${business.website}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary-light)' }}>
                           {business.website}
                         </a>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {business.gstNumber && (
+                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                    <Briefcase size={18} style={{ color: 'var(--primary-light)', flexShrink: 0 }} />
+                    <div>
+                      <strong>GST Number</strong>
+                      <div style={{ color: 'var(--text-muted)', marginTop: '0.15rem', fontFamily: 'monospace', fontWeight: 600 }}>
+                        {business.gstNumber}
                       </div>
                     </div>
                   </div>
@@ -399,7 +417,7 @@ export default function Details() {
 
                 {inquirySuccess && (
                   <div style={{ background: '#f0fdf4', border: '1px solid #86efac', padding: '0.75rem', borderRadius: '8px', color: '#166534', fontSize: '0.85rem', marginBottom: '1rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <CheckCircle2 size={16} /> <span>{inquirySuccess}</span>
+                    <CheckCircle size={16} /> <span>{inquirySuccess}</span>
                   </div>
                 )}
 

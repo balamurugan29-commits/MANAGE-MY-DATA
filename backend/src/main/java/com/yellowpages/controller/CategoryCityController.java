@@ -29,4 +29,22 @@ public class CategoryCityController {
     public ResponseEntity<List<City>> getAllCities() {
         return ResponseEntity.ok(cityRepository.findAll());
     }
+
+    @PostMapping("/cities")
+    public ResponseEntity<City> createCity(@RequestBody City city) {
+        if (city.getName() == null || city.getName().trim().isEmpty() ||
+            city.getState() == null || city.getState().trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        String nameTrimmed = city.getName().trim();
+        String stateTrimmed = city.getState().trim();
+        return cityRepository.findByNameAndState(nameTrimmed, stateTrimmed)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> {
+                    City newCity = new City();
+                    newCity.setName(nameTrimmed);
+                    newCity.setState(stateTrimmed);
+                    return ResponseEntity.ok(cityRepository.save(newCity));
+                });
+    }
 }

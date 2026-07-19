@@ -26,6 +26,12 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    private void saveCityIfNotExists(String name, String state) {
+        if (!cityRepository.existsByNameAndState(name, state)) {
+            cityRepository.save(new City(null, name, state));
+        }
+    }
+
     @Override
     public void run(String... args) throws Exception {
         // Seed B2B categories if empty
@@ -44,43 +50,91 @@ public class DataInitializer implements CommandLineRunner {
             categoryRepository.save(new Category(null, "Apparel & Fashion Accessories", "apparel-fashion", "apparel-fashion", "Garments, fabrics, textiles, shoes, and luxury items."));
         }
 
-        // Seed popular cities if empty
-        if (cityRepository.count() == 0) {
-            cityRepository.save(new City(null, "Delhi", "Delhi"));
-            cityRepository.save(new City(null, "Mumbai", "Maharashtra"));
-            cityRepository.save(new City(null, "Bengaluru", "Karnataka"));
-            cityRepository.save(new City(null, "Chennai", "Tamil Nadu"));
-            cityRepository.save(new City(null, "Surat", "Gujarat"));
-            cityRepository.save(new City(null, "Ahmedabad", "Gujarat"));
-            cityRepository.save(new City(null, "Pune", "Maharashtra"));
-            cityRepository.save(new City(null, "Hyderabad", "Telangana"));
-            cityRepository.save(new City(null, "Kolkata", "West Bengal"));
-            cityRepository.save(new City(null, "Jaipur", "Rajasthan"));
-            cityRepository.save(new City(null, "Coimbatore", "Tamil Nadu"));
-            cityRepository.save(new City(null, "Noida", "Uttar Pradesh"));
-            cityRepository.save(new City(null, "Gurugram", "Haryana"));
-            cityRepository.save(new City(null, "Vadodara", "Gujarat"));
-            cityRepository.save(new City(null, "Ludhiana", "Punjab"));
-        }
+        // Seed popular cities and Tamil Nadu districts
+        saveCityIfNotExists("Delhi", "Delhi");
+        saveCityIfNotExists("Mumbai", "Maharashtra");
+        saveCityIfNotExists("Bengaluru", "Karnataka");
+        saveCityIfNotExists("Surat", "Gujarat");
+        saveCityIfNotExists("Ahmedabad", "Gujarat");
+        saveCityIfNotExists("Pune", "Maharashtra");
+        saveCityIfNotExists("Hyderabad", "Telangana");
+        saveCityIfNotExists("Kolkata", "West Bengal");
+        saveCityIfNotExists("Jaipur", "Rajasthan");
+        saveCityIfNotExists("Noida", "Uttar Pradesh");
+        saveCityIfNotExists("Gurugram", "Haryana");
+        saveCityIfNotExists("Vadodara", "Gujarat");
+        saveCityIfNotExists("Ludhiana", "Punjab");
+
+        // Tamil Nadu districts/cities
+        saveCityIfNotExists("Ariyalur", "Tamil Nadu");
+        saveCityIfNotExists("Chengalpattu", "Tamil Nadu");
+        saveCityIfNotExists("Chennai", "Tamil Nadu");
+        saveCityIfNotExists("Coimbatore", "Tamil Nadu");
+        saveCityIfNotExists("Cuddalore", "Tamil Nadu");
+        saveCityIfNotExists("Dharmapuri", "Tamil Nadu");
+        saveCityIfNotExists("Dindigul", "Tamil Nadu");
+        saveCityIfNotExists("Erode", "Tamil Nadu");
+        saveCityIfNotExists("Kallakurichi", "Tamil Nadu");
+        saveCityIfNotExists("Kanchipuram", "Tamil Nadu");
+        saveCityIfNotExists("Kanniyakumari", "Tamil Nadu");
+        saveCityIfNotExists("Karur", "Tamil Nadu");
+        saveCityIfNotExists("Krishnagiri", "Tamil Nadu");
+        saveCityIfNotExists("Madurai", "Tamil Nadu");
+        saveCityIfNotExists("Mayiladuthurai", "Tamil Nadu");
+        saveCityIfNotExists("Nagapattinam", "Tamil Nadu");
+        saveCityIfNotExists("Namakkal", "Tamil Nadu");
+        saveCityIfNotExists("Nilgiris", "Tamil Nadu");
+        saveCityIfNotExists("Perambalur", "Tamil Nadu");
+        saveCityIfNotExists("Pudukkottai", "Tamil Nadu");
+        saveCityIfNotExists("Ramanathapuram", "Tamil Nadu");
+        saveCityIfNotExists("Ranipet", "Tamil Nadu");
+        saveCityIfNotExists("Salem", "Tamil Nadu");
+        saveCityIfNotExists("Sivaganga", "Tamil Nadu");
+        saveCityIfNotExists("Tenkasi", "Tamil Nadu");
+        saveCityIfNotExists("Thanjavur", "Tamil Nadu");
+        saveCityIfNotExists("Theni", "Tamil Nadu");
+        saveCityIfNotExists("Thoothukudi", "Tamil Nadu");
+        saveCityIfNotExists("Tiruchirappalli", "Tamil Nadu");
+        saveCityIfNotExists("Tirunelveli", "Tamil Nadu");
+        saveCityIfNotExists("Tirupathur", "Tamil Nadu");
+        saveCityIfNotExists("Tiruppur", "Tamil Nadu");
+        saveCityIfNotExists("Tiruvallur", "Tamil Nadu");
+        saveCityIfNotExists("Tiruvannamalai", "Tamil Nadu");
+        saveCityIfNotExists("Tiruvarur", "Tamil Nadu");
+        saveCityIfNotExists("Vellore", "Tamil Nadu");
+        saveCityIfNotExists("Viluppuram", "Tamil Nadu");
+        saveCityIfNotExists("Virudhunagar", "Tamil Nadu");
 
         // Seed default Admin User (admin / admin123)
-        if (!userRepository.existsByUsername("admin")) {
-            User admin = new User();
-            admin.setUsername("admin");
-            admin.setEmail("admin@yellowpages.com");
-            admin.setPassword(passwordEncoder.encode("admin123"));
-            admin.setRole("ROLE_ADMIN");
-            userRepository.save(admin);
-        }
+        userRepository.findByUsername("admin").ifPresentOrElse(
+            admin -> {
+                admin.setPassword(passwordEncoder.encode("admin123"));
+                userRepository.save(admin);
+            },
+            () -> {
+                User admin = new User();
+                admin.setUsername("admin");
+                admin.setEmail("admin@yellowpages.com");
+                admin.setPassword(passwordEncoder.encode("admin123"));
+                admin.setRole("ROLE_ADMIN");
+                userRepository.save(admin);
+            }
+        );
 
         // Seed default Super Admin User (superadmin / super123)
-        if (!userRepository.existsByUsername("superadmin")) {
-            User superadmin = new User();
-            superadmin.setUsername("superadmin");
-            superadmin.setEmail("superadmin@yellowpages.com");
-            superadmin.setPassword(passwordEncoder.encode("super123"));
-            superadmin.setRole("ROLE_SUPER_ADMIN");
-            userRepository.save(superadmin);
-        }
+        userRepository.findByUsername("superadmin").ifPresentOrElse(
+            superadmin -> {
+                superadmin.setPassword(passwordEncoder.encode("super123"));
+                userRepository.save(superadmin);
+            },
+            () -> {
+                User superadmin = new User();
+                superadmin.setUsername("superadmin");
+                superadmin.setEmail("superadmin@yellowpages.com");
+                superadmin.setPassword(passwordEncoder.encode("super123"));
+                superadmin.setRole("ROLE_SUPER_ADMIN");
+                userRepository.save(superadmin);
+            }
+        );
     }
 }

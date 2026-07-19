@@ -20,7 +20,7 @@ public class Business {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(nullable = false, length = 150)
+    @Column(nullable = false, length = 25)
     private String name;
 
     @Column(columnDefinition = "NVARCHAR(MAX)")
@@ -34,20 +34,38 @@ public class Business {
     @JoinColumn(name = "city_id")
     private City city;
 
-    @Column(length = 255)
+    @Column(length = 50)
     private String address;
 
-    @Column(name = "contact_phone", length = 20)
+    @Column(name = "contact_phone", length = 12)
     private String contactPhone;
 
-    @Column(name = "contact_email", length = 100)
+    @Column(name = "contact_phone2", length = 12)
+    private String contactPhone2;
+
+    @Column(name = "contact_phone3", length = 12)
+    private String contactPhone3;
+
+    @Column(name = "contact_email", length = 25)
     private String contactEmail;
 
-    @Column(length = 150)
+    @Column(name = "contact_email2", length = 25)
+    private String contactEmail2;
+
+    @Column(name = "contact_email3", length = 25)
+    private String contactEmail3;
+
+    @Column(length = 25)
     private String website;
 
     @Column(name = "logo_url", length = 255)
     private String logoUrl;
+
+    @Column(name = "gst_number", length = 15)
+    private String gstNumber;
+
+    @Column(name = "area", length = 20)
+    private String area;
 
     @Column(name = "is_verified", nullable = false)
     private Boolean isVerified = false;
