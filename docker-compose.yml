@@ -32,6 +32,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - uploads-data:/app/uploads
 
   frontend:
     build:
@@ -45,3 +47,4 @@ services:
 
 volumes:
   mssql-data:
+  uploads-data:
