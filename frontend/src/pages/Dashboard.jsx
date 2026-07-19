@@ -554,7 +554,7 @@ export default function Dashboard({ user }) {
                 <form onSubmit={handleSaveListing} style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '2rem', borderRadius: '12px' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                     {user.role === 'ROLE_EMPLOYEE' && (
-                      <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                      <div className="form-group">
                         <label className="form-label">Associate with Business Owner (User Account Username) *</label>
                         <input
                           type="text"
