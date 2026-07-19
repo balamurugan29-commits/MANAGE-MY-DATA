@@ -56,6 +56,7 @@ export default function Dashboard({ user }) {
   const [bizError, setBizError] = useState('');
   const [businessUsers, setBusinessUsers] = useState([]);
   const [bizUserId, setBizUserId] = useState('');
+  const [bizOwnerUsername, setBizOwnerUsername] = useState('');
 
   // Form states (Products)
   const [products, setProducts] = useState([]);
@@ -129,6 +130,7 @@ export default function Dashboard({ user }) {
           setBizLogo(biz.logoUrl || '');
           setBizGst(biz.gstNumber || '');
           setBizUserId(biz.user?.id || '');
+          setBizOwnerUsername(biz.user?.username || '');
 
           // Fetch products & inquiries for this business
           fetchProducts(biz.id);
@@ -176,6 +178,7 @@ export default function Dashboard({ user }) {
     setBizLogo('');
     setBizGst('');
     setBizUserId('');
+    setBizOwnerUsername('');
     setProducts([]);
     setInquiries([]);
   };
@@ -187,6 +190,20 @@ export default function Dashboard({ user }) {
     setBizSuccess('');
 
     let cityIdToSubmit = bizCityId;
+    let finalUserId = bizUserId ? parseInt(bizUserId) : null;
+
+    if (user.role === 'ROLE_EMPLOYEE') {
+      if (!bizOwnerUsername.trim()) {
+        throw new Error("Please specify a business owner username.");
+      }
+      const matchedUser = businessUsers.find(
+        u => u.username.toLowerCase() === bizOwnerUsername.trim().toLowerCase()
+      );
+      if (!matchedUser) {
+        throw new Error(`Username "${bizOwnerUsername}" not found. Please enter a valid registered business owner's username.`);
+      }
+      finalUserId = matchedUser.id;
+    }
 
     try {
       // If the city is custom/new, create it first
@@ -247,7 +264,7 @@ export default function Dashboard({ user }) {
           logoUrl: bizLogo,
           gstNumber: bizGst || null,
           area: bizArea,
-          userId: bizUserId ? parseInt(bizUserId) : null
+          userId: finalUserId
         })
       });
 
@@ -538,18 +555,15 @@ export default function Dashboard({ user }) {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                     {user.role === 'ROLE_EMPLOYEE' && (
                       <div className="form-group" style={{ gridColumn: 'span 2' }}>
-                        <label className="form-label">Associate with Business Owner (User Account) *</label>
-                        <select
+                        <label className="form-label">Associate with Business Owner (User Account Username) *</label>
+                        <input
+                          type="text"
                           className="form-control"
+                          placeholder="Enter registered business owner's username..."
                           required
-                          value={bizUserId}
-                          onChange={(e) => setBizUserId(e.target.value)}
-                        >
-                          <option value="">Select Business User</option>
-                          {businessUsers.map(u => (
-                            <option key={u.id} value={u.id}>{u.username} ({u.email})</option>
-                          ))}
-                        </select>
+                          value={bizOwnerUsername}
+                          onChange={(e) => setBizOwnerUsername(e.target.value)}
+                        />
                       </div>
                     )}
 
